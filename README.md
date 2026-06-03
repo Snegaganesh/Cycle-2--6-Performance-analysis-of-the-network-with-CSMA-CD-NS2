@@ -1,90 +1,97 @@
-# Cycle 2 --4 - Simulation of -bus-topology-Network -NS2
-# Bus Topology Simulation in NS2
+# Cycle-2  6 PERFORMANCE ANALYSIS OF THE NETWORK WITH CSMA/CD -NS2
+PERFORMANCE ANALYSIS OF THE NETWORK WITH CSMA/CD
+# NS2 Simulation: CSMA/CD Network Performance
 
-## AIM
+## 🎯 AIM
+To write an NS2 program to observe the performance of the network with Carrier Sense Multiple Access/Collision Detection (CSMA/CD).
 
-To create and monitor a Bus Topology and effective data transmission using NS2 Software.
+## 🧰 EQUIPMENT REQUIRED
+- PC System with Linux OS  
+- NS2 software
 
-## APPARATUS REQUIRED
+## 🧪 ALGORITHM
 
-*   PC System with Linux OS
-*   NS2 software
-
-## ALGORITHM
- 
-* STEP 1: Start the program. 
-* STEP 2: Declare the global variables ns for creating a new simulator. 
-* STEP 3: Open the network animator file in the write mode. 
-* STEP 4: Open the trace file in the write mode. 
-* STEP 5: Transfer the packets in network. 
-* STEP 6: Create the capable no of nodes. 
-* STEP 7: Create the duplex-link between the nodes including the delay time, bandwidth 
-and dropping queue mechanism. 
-* STEP 8: Set a tcp connection for source node. 
-* STEP 9: Set the destination node using tcp sink. 
-* STEP 10: Set the window size and the packet size for the tcp. 
-* STEP 11: Set up the ftp over the tcp connection. 
-* STEP 12: Create the traffic generator CBR for the source and destination files. 
-* STEP 13: Define the plot window and finish procedure. 
-* STEP 14: In the definition of the finish procedure declare the global variables. 
-* STEP 15: Close the trace file and namefile and execute the network animation 
-file.
-* STEP 16: At the particular time call the finish procedure. 
-* STEP 17: Stop the program.
-Program:
-# Create simulator
-set ns [new Simulator]
-
-# NAM trace
-set nf [open out.nam w]
-$ns namtrace-all $nf
-
-# Finish procedure
-proc finish {} {
-    global ns nf
-    $ns flush-trace
-    close $nf
-    exec nam out.nam &
-    exit 0
+1. Start the program.  
+2. Declare the global variable `ns` for creating a new simulator.  
+3. Set the color for packets.  
+4. Open the network animator file in write mode.  
+5. Open the trace file and the win file in write mode.  
+6. Transfer the packets in the network.  
+7. Create the required number of nodes.  
+8. Create duplex links between nodes with delay time, bandwidth, and queue mechanism.  
+9. Assign positions for the links between nodes.  
+10. Set a TCP connection for the source node.  
+11. Set the destination node using TCP sink.  
+12. Configure window size and packet size for TCP.  
+13. Set up FTP over the TCP connection.  
+14. Configure UDP and TCP connections for source and destination.  
+15. Create traffic generator (CBR) for source and destination.  
+16. Define the plot window and finish procedure.  
+17. In the finish procedure, declare global variables.  
+18. Close the trace and name files, and execute the network animation file.  
+19. At a specific time, call the finish procedure.  
+20. Stop the program.
+## PROGRAM:
+```tcl
+#Lan simulation – mac.tcl setns [new Simulator] #define color for data flows
+$ns color 1 blue
+$ns color 2 red
+set tracefile1 [openout.tr w]
+$ns trace-all $tracefile1 #open nam file
+set namfile [open out.namw]
+$ns namtrace-all $namfile #define the finish procedure proc finish {}
+{
+global ns tracefile1 namfile
+$ns flush-trace close $tracefile1 close $namfile
+exec nam out.nam& exit 0
 }
-
-# Create nodes
-set n0 [$ns node]
-set n1 [$ns node]
-set n2 [$ns node]
-set n3 [$ns node]
-set n4 [$ns node]
-
-# Create LAN
-set lan0 [$ns newLan "$n0 $n1 $n2 $n3 $n4" 0.5Mb 40ms \
-          LL Queue/DropTail MAC/Csma/Cd Channel]
-
-# TCP Agent
-set tcp0 [new Agent/TCP]
-$ns attach-agent $n1 $tcp0
-
-# TCP Sink
-set sink0 [new Agent/TCPSink]
-$ns attach-agent $n3 $sink0
-
-# Connect TCP -> Sink
-$ns connect $tcp0 $sink0
-
-# CBR Application
-set cbr0 [new Application/Traffic/CBR]
-$cbr0 set packetSize_ 500
-$cbr0 set interval_ 0.01
-$cbr0 attach-agent $tcp0
-
-# Schedule
-$ns at 0.5 "$cbr0 start"
-$ns at 4.5 "$cbr0 stop"
-$ns at 5.0 "finish"
-
+#create six nodes set n0 [$ns node] set n1[$ns node] set n2 [$ns node] set n3 [$ns node] set n4 [$ns node] set n5 [$ns node]
+#Specify color and shape for nodes
+$n1 color Red
+$n1 shape box
+#create links between the nodes
+$ns duplex-link $n0 $n2 2Mb 10ms DropTail
+$ns duplex-link $n1 $n2 2Mb 10ms DropTail
+$ns simplex-link $n2 $n3 0.3Mb 100ms DropTail
+$ns simplex-link $n3 $n2 0.3Mb 100ms DropTail # Create a LAN
+set lan [$ns newLan "$n3 $n4 $n5" 0.5Mb 40ms LL Queue/DropTailMAC/Csma/Cd Channel] #Give node position
+set lan [$ns newLan "$n3 $n4 $n5" 0.5Mb 40ms LL Queue/DropTailMAC/Csma/Cd Channel] #Give node position
+$ns duplex-link-op $n0 $n2 orient right-down
+$ns duplex-link-op $n1 $n2 orient right-up
+$ns simplex-link-op $n2 $n3 orient right
+ 
+$ns simplex-link-op $n3 $n2 orient left #setup TCP connection
+set tcp [new Agent/TCP/Newreno]
+$nsattach-agent $n0 $tcp
+set sink [newAgent/TCPSink/DelAck]
+$ns attach- agent $n4 $sink
+$ns connect $tcp $sink
+$tcp set fid_ 1
+$tcp set packet_size_ 552 #set ftp over tcp connection set ftp [new Application/FTP]
+$ftp attach-agent $tcp #setup a UDP connection set udp [new Agent/UDP]
+$ns attach-agent $n1 $udp set null [new Agent/Null]
+$ns attach-agent
+$n5 $null
+$ns connect $udp $null
+$udp set fid_ 2
+#setup a CBR over UDP connection setcbr [new Application/Traffic/CBR]
+$cbr attach-agent $udp
+$cbr set type_ CBR
+$cbr set packet_size_ 1000
+$cbr set rate_ 0.05Mb
+$cbr set random_ false #scheduling the events
+$ns at 0.0 "$n0 label TCP_Traffic"
+$ns at 0.0 "$n1 label UDP_Traffic"
+$ns at 0.3 "$cbr start"
+$ns at 0.8 "$ftp start"
+$nsat 7.0 "$ftp stop"
+$ns at 7.5 "$cbr stop"
+$ns at 8.0 "finish"
 $ns run
 
-![WhatsApp Image 2025-10-23 at 20 52 44_1a5dc9a8](https://github.com/user-attachments/assets/f77f4b31-4e85-4ffd-8b59-3b761178c8e7)
+```
+## 📊 MODEL OUTPUT
+![WhatsApp Image 2025-09-12 at 4 33 09 PM](https://github.com/user-attachments/assets/4c3fe241-ee19-4a5a-9f17-512b7da4360c)
 
-## Result:
- Hence to create and monitor a Bus Topology and effective data transmission using NS2 Software is verified.
-
+## ✅ RESULT
+Thus, the performance of the network with Carrier Sense Multiple Access/Collision Detection is verified using NS2 simulation.
